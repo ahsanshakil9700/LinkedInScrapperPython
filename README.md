@@ -1,12 +1,11 @@
 # LinkedIn Python Scrapper
 
-This is an initial project to scrape LinkedIn jobs based on a keyword search.
+This project allows you to scrape LinkedIn jobs based on a keyword search.
 
 ## Requirements
-- Python v3.10 or above
-- pip3
-- Scrapy Framework
-- Python Pandas
+- Python v3.10 or above: Required to run the Python scripts.
+- pip3: Package installer for Python.
+- Scrapy Framework: Python framework for web scraping.
 
 ## Setup Instructions
 
@@ -40,10 +39,14 @@ pip install -r requirements.txt
 ### Step 4: Run the Scrapy Spider
 
 ```bash
-scrapy crawl linkedIn -o results.json
+scrapy crawl linkedIn -o results.json -a job_title="Full Stack Developer" -a location="United States" -a work_preference="remote"
 ```
 
-This command will execute the spider to scrape LinkedIn jobs for **Full Stack Developer** in the *United States** in the past 24 hours.
+Replace the values in quotes with your desired parameters:
+
+- ```job_title```: The job title to search for (default: "Full Stack Developer").
+- ```location```: The location for job search (default: "United States").
+- ```work_preference```: The work preference, such as "remote," "on-site," or "hybrid" (default: "remote").
 
 ### Step 5: Deactivate the Virtual Environment
 ```bash
@@ -56,6 +59,6 @@ This deactivates the virtual environment when you're done with your project.
 The spider is defined in the ```JobScrapping/spiders/LinkedIn.py``` file. The spider name is **linkedIn**. Make sure to use this name when running the scrapy crawl command.
 
 ## Note
-- The spider currently does not use rotating proxies or customized request headers.
-- If you encounter any issues seek help from the project contributors.
+  If you encounter any issues seek help from the project contributors.
+  
 

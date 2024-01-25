@@ -2,22 +2,43 @@ import scrapy
 import pandas as pd
 from w3lib.html import remove_tags
 import time
-import random
-
+import argparse
 jobs_scrapped = []
 
 
 class LinkedJobsSpider(scrapy.Spider):
     name = "linkedIn"
-    api_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Full%20Stack%20Developer' \
-              '&location=United%20States&locationId=&geoId=103644278&sortBy=R&f_TPR=r86400&position=1&pageNum=0&start='
+    api_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search'
+
     jobs_scraped_count = 0
     retry_delay = 5
 
+    def __init__(self, *args, **kwargs):
+        super(LinkedJobsSpider, self).__init__(*args, **kwargs)
+        self.job_title = kwargs.get('job_title', 'Full Stack Developer')
+        self.location = kwargs.get('location', 'United States')
+        self.preference = kwargs.get('work_preference', 'remote')
+        self.max_jobs = int(kwargs.get('max_jobs', float('inf')))
     def start_requests(self):
         first_job_on_page = 0
-        first_url = self.api_url + str(first_job_on_page)
-        yield scrapy.Request(url=first_url, callback=self.parse_jobs, meta={'first_job_on_page': first_job_on_page})
+        # Set values and replace spaces with '%'
+        job_title = self.job_title.replace(" ", "%20")
+        location = self.location.replace(" ", "%20")
+        preference = self.get_work_preference(self.preference)
+
+        start_url = f'{self.api_url}?keywords={job_title}&location={location}&sortBy=R&{preference}&f_TPR=r86400&f_WT=2&position=1&pageNum=0&start=0'
+
+        yield scrapy.Request(url=start_url, callback=self.parse_jobs, meta={'first_job_on_page': first_job_on_page})
+    
+    def get_work_preference(self, input_string):
+        preferences = {
+            'remote': 'f_WT=2',
+            'on-site': 'f_WT=1',
+            'hybrid': 'f_WT=3'
+        }
+
+        lower_input = input_string.lower()
+        return preferences.get(lower_input, 'remote')
 
     def parse_jobs(self, response):
         first_job_on_page = response.meta['first_job_on_page']
@@ -40,7 +61,7 @@ class LinkedJobsSpider(scrapy.Spider):
             print(f'***** WAITING 10 SECONDS AFTER SCRAPING {self.jobs_scraped_count} JOBS *****')
             time.sleep(10)
 
-        if num_jobs_returned > 0:
+        if num_jobs_returned > 0 and self.jobs_scraped_count < self.max_jobs:
             first_job_on_page = int(first_job_on_page) + 25
             next_url = self.api_url + str(first_job_on_page)
             time.sleep(3)
